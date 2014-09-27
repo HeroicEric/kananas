@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 )
 
@@ -12,7 +13,9 @@ func StartHTTPServer() {
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello world!")
+		tmpl, _ := template.ParseFiles("app/templates/index.html")
+
+		tmpl.Execute(w, nil)
 	})
 
 	StartHTTPServer()
