@@ -7,6 +7,8 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
+	"time"
 )
 
 type Peel struct {
@@ -17,6 +19,14 @@ type Peel struct {
 func startHTTPServer() {
 	fmt.Println("Server up and running at http://localhost:1337...")
 	http.ListenAndServe(":1337", nil)
+}
+
+func withMetrics(l *log.Logger, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		began := time.Now()
+		next.ServeHTTP(w, r)
+		l.Printf("%s %s took %s", r.Method, r.URL, time.Since(began))
+	})
 }
 
 func indexHandler(db *sql.DB) http.Handler {
@@ -53,7 +63,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	http.Handle("/", indexHandler(db))
+	logger := log.New(os.Stdout, "", 0)
+
+	http.Handle("/", withMetrics(logger, indexHandler(db)))
 	http.Handle("/peels", createPeelHandler(db))
 
 	startHTTPServer()
