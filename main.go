@@ -19,8 +19,8 @@ func StartHTTPServer() {
 	http.ListenAndServe(":1337", nil)
 }
 
-func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+func indexHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		db, err := sql.Open("postgres", "dbname=kananas_development sslmode=disable")
 		if err != nil {
 			log.Fatal(err)
@@ -42,8 +42,10 @@ func main() {
 		tmpl, _ := template.ParseFiles("app/templates/index.html")
 		tmpl.Execute(w, peels)
 	})
+}
 
-	http.HandleFunc("/peels", func(w http.ResponseWriter, r *http.Request) {
+func createPeelHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		db, err := sql.Open("postgres", "dbname=kananas_development sslmode=disable")
 		if err != nil {
 			log.Fatal(err)
@@ -55,6 +57,11 @@ func main() {
 		db.Close()
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
+}
+
+func main() {
+	http.Handle("/", indexHandler())
+	http.Handle("/peels", createPeelHandler())
 
 	StartHTTPServer()
 }
