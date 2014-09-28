@@ -14,21 +14,16 @@ type Peel struct {
 	Body string
 }
 
-func StartHTTPServer() {
+func startHTTPServer() {
 	fmt.Println("Server up and running at http://localhost:1337...")
 	http.ListenAndServe(":1337", nil)
 }
 
-func indexHandler() http.Handler {
+func indexHandler(db *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		db, err := sql.Open("postgres", "dbname=kananas_development sslmode=disable")
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		peels := []Peel{}
 
-		rows, err := db.Query("SELECT * FROM peels")
+		rows, _ := db.Query("SELECT * FROM peels")
 		for rows.Next() {
 			peel := Peel{}
 			if err := rows.Scan(&peel.Id, &peel.Body); err != nil {
@@ -37,31 +32,29 @@ func indexHandler() http.Handler {
 			peels = append(peels, peel)
 		}
 
-		db.Close()
-
 		tmpl, _ := template.ParseFiles("app/templates/index.html")
 		tmpl.Execute(w, peels)
 	})
 }
 
-func createPeelHandler() http.Handler {
+func createPeelHandler(db *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		db, err := sql.Open("postgres", "dbname=kananas_development sslmode=disable")
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		body := r.FormValue("body")
+
 		db.Exec("INSERT INTO peels (body) VALUES ($1)", body)
 
-		db.Close()
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
 }
 
 func main() {
-	http.Handle("/", indexHandler())
-	http.Handle("/peels", createPeelHandler())
+	db, err := sql.Open("postgres", "dbname=kananas_development sslmode=disable")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	StartHTTPServer()
+	http.Handle("/", indexHandler(db))
+	http.Handle("/peels", createPeelHandler(db))
+
+	startHTTPServer()
 }
