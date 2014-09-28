@@ -1,3 +1,41 @@
-<h1>Hello world!</h1>
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="//cdnjs.cloudflare.com/ajax/libs/foundation/5.0.3/css/normalize.min.css" rel="stylesheet" type="text/css" />
+  <link href="//cdnjs.cloudflare.com/ajax/libs/foundation/5.0.3/css/foundation.min.css" rel="stylesheet" type="text/css" />
 
-<p>Welcome to the greatest website ever created!</p>
+  <meta charset="utf-8">
+  <title>Kananas</title>
+</head>
+<body>
+
+<div class="row">
+  <div class="small-12 columns">
+    <h1>kaNaNas!</h1>
+
+    <form action="/peels" method="post">
+      <div>
+        <p><label for="body">New Peel</label></p>
+        <textarea name="body"></textarea>
+      </div>
+
+      <div>
+        <input class="button" type="submit" value="Share your Peel">
+      </div>
+    </form>
+
+    <h3>Peels</h3>
+
+    <ul>
+    {{range .}}
+      <li>{{.Body}}</li>
+    {{end}}
+    </ul>
+  </div>
+</div>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.0.3/js/vendor/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.0.3/js/foundation.min.js"></script>
+
+</body>
+</html>
